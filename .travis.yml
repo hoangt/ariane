@@ -1,7 +1,11 @@
 language: cpp
 # run on new infrastructure
 sudo: false
-cache: apt
+cache:
+  apt: true
+  directories:
+    $RISCV
+
 # required packages to install
 addons:
   apt:
@@ -37,13 +41,27 @@ branches:
 before_install:
   - export CXX=g++-4.8 CC=gcc-4.8
   - ci/make-tmp.sh
-  - ci/build-riscv-gcc.sh
-  - ci/install-verilator.sh
-  - ci/install-fesvr.sh
-  - ci/build-riscv-tests.sh
+  - export LIBRARY_PATH=$LIBRARY_PATH:$TRAVIS_BUILD_DIR/tmp/lib
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/tmp/lib
+  - export C_INCLUDE_PATH=$C_INCLUDE_PATH:$TRAVIS_BUILD_DIR/tmp/include
+  - export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$TRAVIS_BUILD_DIR/tmp/include
   - export VERILATOR_ROOT=$TRAVIS_BUILD_DIR/tmp/verilator-3.918/
-script:
-  - make run-asm-tests-verilator verilator=$TRAVIS_BUILD_DIR/tmp/bin/verilator
+
+stages:
+  - compile
+  - test
+
+jobs:
+  include:
+    - stage: compile
+      script:
+        - ci/build-riscv-gcc.sh
+    - stage: test
+      script:
+        - ci/install-verilator.sh
+        - ci/install-fesvr.sh
+        - ci/build-riscv-tests.sh
+        - make run-asm-tests-verilator verilator=$TRAVIS_BUILD_DIR/tmp/bin/verilator
 
 # extra time duing long builds
 install: travis_wait
