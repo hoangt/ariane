@@ -76,6 +76,7 @@ module branch_unit (
         resolved_branch_o.is_mispredict  = 1'b0;
         resolved_branch_o.is_lower_16    = 1'b0;
         resolved_branch_o.clear          = 1'b0;
+        resolved_branch_o.is_call        = 1'b0;
         resolve_branch_o                 = 1'b0;
         // calculate next PC, depending on whether the instruction is compressed or not this may be different
         next_pc                          = pc_i + ((is_compressed_instr_i) ? 64'h2 : 64'h4);
@@ -129,7 +130,10 @@ module branch_unit (
             end
             // to resolve the branch in ID
             resolve_branch_o = 1'b1;
-        // the other case would be that this instruction was no branch but branch prediction thought that it was one
+            // check if this was a call or not
+            if (operator_i == JALR && branch_predict_i.is_call)
+                resolved_branch_o.is_call = 1'b1;
+        // the other case would be that this instruction was no branch but branch prediction thought that it was one (aliasing)
         // this is essentially also a mis-predict
         end else if (fu_valid_i && branch_predict_i.valid && branch_predict_i.predict_taken) begin
             // re-set the branch to the next PC

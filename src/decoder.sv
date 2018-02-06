@@ -55,12 +55,7 @@ module decoder (
     logic [63:0] imm_sb_type;
     logic [63:0] imm_u_type;
     logic [63:0] imm_uj_type;
-    logic [63:0] imm_z_type;
-    logic [63:0] imm_s2_type;
     logic [63:0] imm_bi_type;
-    logic [63:0] imm_s3_type;
-    logic [63:0] imm_vs_type;
-    logic [63:0] imm_vu_type;
 
     always_comb begin : decoder
 
@@ -457,12 +452,14 @@ module decoder (
                 end
                 // Jump and link register
                 OPCODE_JALR: begin
-                    instruction_o.fu        = CTRL_FLOW;
-                    instruction_o.op        = JALR;
-                    instruction_o.rs1       = instr.itype.rs1;
-                    imm_select              = IIMM;
-                    instruction_o.rd        = instr.itype.rd;
-                    is_control_flow_instr_o = 1'b1;
+                    instruction_o.fu          = CTRL_FLOW;
+                    instruction_o.op          = JALR;
+                    instruction_o.rs1         = instr.itype.rs1;
+                    imm_select                = IIMM;
+                    instruction_o.rd          = instr.itype.rd;
+                    is_control_flow_instr_o   = 1'b1;
+                    // its a call if rd = x1 (ra)
+                    instruction_o.bp.is_call  = (instr.itype.rd == 'b1) ? 1'b1 : 1'b0;
                 end
                 // Jump and link
                 OPCODE_JAL: begin
@@ -499,11 +496,7 @@ module decoder (
         imm_sb_type = { {51 {instruction_i[31]}}, instruction_i[31], instruction_i[7], instruction_i[30:25], instruction_i[11:8], 1'b0 };
         imm_u_type  = { {32 {instruction_i[31]}}, instruction_i[31:12], 12'b0 }; // JAL, AUIPC, sign extended to 64 bit
         imm_uj_type = { {44 {instruction_i[31]}}, instruction_i[19:12], instruction_i[20], instruction_i[30:21], 1'b0 };
-        imm_s2_type = { 59'b0, instruction_i[24:20] };
         imm_bi_type = { {59{instruction_i[24]}}, instruction_i[24:20] };
-        imm_s3_type = { 59'b0, instruction_i[29:25] };
-        imm_vs_type = { {58 {instruction_i[24]}}, instruction_i[24:20], instruction_i[25] };
-        imm_vu_type = { 58'b0, instruction_i[24:20], instruction_i[25] };
 
         // NOIMM, PCIMM, IIMM, SIMM, BIMM, BIMM, UIMM, JIMM
         // select immediate

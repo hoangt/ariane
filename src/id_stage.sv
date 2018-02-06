@@ -34,13 +34,15 @@ module id_stage (
     input  priv_lvl_t                                priv_lvl_i,          // current privilege level
     input  logic                                     tvm_i,
     input  logic                                     tw_i,
-    input  logic                                     tsr_i
+    input  logic                                     tsr_i,
+    // from branch unit
+    input  branchpredict_t                           resolved_branch_i   // update RAS
 );
     // register stage
     struct packed {
-        logic            valid;
+        logic              valid;
         scoreboard_entry_t sbe;
-        logic            is_ctrl_flow;
+        logic              is_ctrl_flow;
 
     } issue_n, issue_q;
 
@@ -119,6 +121,21 @@ module id_stage (
         if (flush_i)
             issue_n.valid = 1'b0;
     end
+
+    // -----------------------
+    // Early Branching Logic
+    // -----------------------
+    // RAS
+    ras #(
+        .DEPTH ( RAS_DEPTH )
+    ) i_ras (
+        .push_i ( resolved_branch_i.is_call             ),
+        .data_i ( resolved_branch_i.target_address      ),
+        .data_o (                                       ),
+        .pop_i  ( is_ret(instruction_t'(instruction))   ),
+        .*
+    );
+
     // -------------------------
     // Registers (ID <-> Issue)
     // -------------------------
@@ -130,4 +147,51 @@ module id_stage (
         end
     end
 
+endmodule
+
+// Description: Return Address Stack
+module ras #(
+    parameter int unsigned DEPTH = 2
+)(
+    input  logic        clk_i,
+    input  logic        rst_ni,
+    input  logic        push_i,
+    input  logic        pop_i,
+    input  logic [63:0] data_i,
+    output logic [63:0] data_o
+);
+
+    logic [DEPTH-1:0][63:0] stack_d, stack_q;
+
+    assign data_o = stack_q[0];
+
+    always_comb begin
+        stack_d = stack_q;
+
+        // push on the stack
+        if (push_i) begin
+            stack_d[0] = data_i;
+            stack_d[DEPTH-1:1] = stack_q[DEPTH-2:0];
+        end
+
+        if (pop_i) begin
+            stack_d[DEPTH-2:0] = stack_q[DEPTH-1:1];
+        end
+    end
+
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (~rst_ni) begin
+            stack_q <= '0;
+        end else begin
+            stack_q <= stack_d;
+        end
+    end
+
+    `ifndef SYNTHESIS
+    `ifndef verilator
+    assert property (
+        @(posedge clk_i) rst_ni |-> push_i ^ pop_i)
+        else $error("[RAS] Push and pop must never be asserted at the same time");
+    `endif
+    `endif
 endmodule

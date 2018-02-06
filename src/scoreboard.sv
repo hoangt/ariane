@@ -272,41 +272,6 @@ module scoreboard #(
 
     // there should never be more than one instruction writing the same destination register (except x0)
     // assert strict pointer ordering
-
-    // print scoreboard
-    // initial begin
-    //         automatic string pointer = "";
-    //         static integer f = $fopen("scoreboard.txt", "w");
-
-    //         forever begin
-    //             wait(rst_ni == 1'b1);
-    //             @(posedge clk_i)
-    //             $fwrite(f, $time);
-    //             $fwrite(f, "\n");
-    //             $fwrite(f, "._________________________.\n");
-    //             for (int i = 0; i < NR_ENTRIES; i++) begin
-    //                 if (i == commit_pointer_q && i == issue_pointer_q && i == top_pointer_q)
-    //                     pointer = " <- top, issue, commit pointer";
-    //                 else if (i == commit_pointer_q && i == issue_pointer_q)
-    //                     pointer = " <- issue, commit pointer";
-    //                 else if (i == top_pointer_q && i == issue_pointer_q)
-    //                     pointer = " <- top, issue pointer";
-    //                 else if (i == top_pointer_q && i == commit_pointer_q)
-    //                     pointer = " <- top, commit pointer";
-    //                 else if (i == top_pointer_q)
-    //                     pointer = " <- top pointer";
-    //                 else if (i == commit_pointer_q)
-    //                     pointer = " <- commit pointer";
-    //                 else if (i == issue_pointer_q)
-    //                     pointer = " <- issue pointer";
-    //                 else
-    //                     pointer = "";
-    //                 $fwrite(f, "|_________________________| %s\n", pointer);
-    //             end
-    //              $fwrite(f, "\n");
-    //         end
-    //         $fclose(f);
-    // end
     `endif
     `endif
 endmodule

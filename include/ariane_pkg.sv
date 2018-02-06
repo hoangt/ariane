@@ -32,6 +32,7 @@ package ariane_pkg;
     localparam BTB_ENTRIES   = 8;
     localparam BITS_SATURATION_COUNTER = 2;
     localparam NR_COMMIT_PORTS = 2;
+    localparam RAS_DEPTH       = 2;
 
     localparam logic [63:0] ISA_CODE = (1 <<  2)  // C - Compressed extension
                                      | (1 <<  8)  // I - RV32I/64I/128I base ISA
@@ -69,6 +70,7 @@ package ariane_pkg;
                                       // in the lower 16 bit of the word
         logic        valid;           // prediction with all its values is valid
         logic        clear;           // invalidate this entry
+        logic        is_call;         // this instruction was a call
     } branchpredict_t;
 
     // branchpredict scoreboard entry
@@ -80,6 +82,7 @@ package ariane_pkg;
         logic        is_lower_16;     // branch instruction is compressed and resides
                                       // in the lower 16 bit of the word
         logic        valid;           // this is a valid hint
+        logic        is_call;         // this instruction is a call
     } branchpredict_sbe_t;
 
     typedef enum logic[3:0] {
@@ -424,5 +427,24 @@ package ariane_pkg;
     // ----------------------
     function automatic logic [63:0] sext32 (logic [31:0] operand);
         return {{32{operand[31]}}, operand[31:0]};
+    endfunction
+
+    // ----------------------
+    // Utility Functions
+    // ----------------------
+    function automatic logic is_call (instruction_t instr);
+        if (instr.itype.opcode == OPCODE_JALR)
+            // if the destination register is x1 this is the calling convention for a function call
+            return (instr.itype.rd == 'b1) ? 1'b1 : 1'b0;
+        else
+            return 1'b0;
+    endfunction
+
+    function automatic logic is_ret (instruction_t instr);
+        if (instr.itype.opcode == OPCODE_JALR)
+            // if rs1 is x1 and rd is x0 this is a return
+            return (instr.itype.rs1 == 'b1 && instr.itype.rd == 'b0) ? 1'b1 : 1'b0;
+        else
+            return 1'b0;
     endfunction
 endpackage

@@ -340,6 +340,7 @@ module ariane #(
         .tw_i                       ( tw_csr_id                       ),
         .tsr_i                      ( tsr_csr_id                      ),
 
+        .resolved_branch_i          ( resolved_branch                 ),
         .*
     );
 
@@ -443,15 +444,15 @@ module ariane #(
         .lsu_ready_o            ( lsu_ready_ex_id                        ),
         .lsu_valid_i            ( lsu_valid_id_ex                        ),
 
-        .ld_result_o           ( ld_result_ex_id                       ),
-        .ld_trans_id_o         ( ld_trans_id_ex_id                     ),
-        .ld_valid_o            ( ld_valid_ex_id                        ),
-        .ld_exception_o        ( ld_exception_ex_id                    ),
+        .ld_result_o            ( ld_result_ex_id                        ),
+        .ld_trans_id_o          ( ld_trans_id_ex_id                      ),
+        .ld_valid_o             ( ld_valid_ex_id                         ),
+        .ld_exception_o         ( ld_exception_ex_id                     ),
 
-        .st_result_o           ( st_result_ex_id                       ),
-        .st_trans_id_o         ( st_trans_id_ex_id                     ),
-        .st_valid_o            ( st_valid_ex_id                        ),
-        .st_exception_o        ( st_exception_ex_id                    ),
+        .st_result_o            ( st_result_ex_id                        ),
+        .st_trans_id_o          ( st_trans_id_ex_id                      ),
+        .st_valid_o             ( st_valid_ex_id                         ),
+        .st_exception_o         ( st_exception_ex_id                     ),
 
         .lsu_commit_i           ( lsu_commit_commit_ex                   ), // from commit
         .lsu_commit_ready_o     ( lsu_commit_ready_ex_commit             ), // to commit
